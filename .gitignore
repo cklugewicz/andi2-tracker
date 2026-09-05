@@ -1,3 +1,6 @@
+# Virtual environment — reproducible from requirements.txt, don't commit it
+venv/
+.venv/
 
 # Obsidian
 docs/.obsidian/workspace.json
