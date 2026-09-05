@@ -4,8 +4,6 @@ A Discord bot with slash commands for astronomy enthusiasts — 22 commands cove
 
 ## Commands
 
-Commands are grouped the same way `/help` groups them in Discord — a handful of broad categories rather than one heading per command, which stopped being readable once the bot passed about a dozen commands. (The single source of truth for this grouping is `CATEGORY_FOR_COG` in `cogs/help.py`; if you add a cog, update that mapping so `/help` and this table don't drift apart from each other.)
-
 **☁️ Sky & Conditions**
 
 | Command | Description |
