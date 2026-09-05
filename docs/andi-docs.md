@@ -396,6 +396,62 @@ Use `/reminderstatus` to check current settings, or
 - `lead_days` (optional) — Days before the event for the heads-up reminder (default 3). A day-of reminder always fires too.
 
 
+## 🐛 Feedback
+
+### `/bugreport <title> <description>`
+
+Report a bug for admin review before it's filed on GitHub
+
+Submits a bug report for admin review. It's posted as an embed
+in this server's review channel (set up via `/setreviewchannel`)
+with Approve/Reject buttons — nothing reaches GitHub until an
+admin approves it.
+
+**Usage:** `/bugreport title: [short summary] description: [what
+happened, what you expected, and steps to reproduce]`. The more
+detail in `description`, the faster it can get fixed — include
+the exact command you ran and any error message you saw.
+
+Limited to 3 submissions per 10 minutes per person.
+
+**Parameters:**
+
+- `title` (required) — Short summary of the bug (e.g. '/sky fails for Tokyo')
+- `description` (required) — What happened, what you expected, and steps to reproduce if you can
+
+### `/featurerequest <title> <description>`
+
+Suggest a feature for admin review before it's filed on GitHub
+
+Submits a feature request for admin review. It's posted as an
+embed in this server's review channel (set up via
+`/setreviewchannel`) with Approve/Reject buttons — nothing
+reaches GitHub until an admin approves it.
+
+**Usage:** `/featurerequest title: [short summary] description:
+[what you'd like to see and why it'd help]`.
+
+Limited to 3 submissions per 10 minutes per person.
+
+**Parameters:**
+
+- `title` (required) — Short summary of the idea (e.g. 'Add autocomplete to /satellite name')
+- `description` (required) — What you'd like to see and why it'd be useful
+
+### `/setreviewchannel`
+
+Set this channel to receive bug reports/feature requests for review
+
+**(Admin — requires Manage Server)** Sets the current channel as
+this server's review queue: submissions from `/bugreport` and
+`/featurerequest` will post here with Approve/Reject buttons.
+
+**Usage:** run this in whichever channel you want reports to
+land in — typically a private, staff-only channel, since it'll
+contain unreviewed, unfiltered user submissions. Run it again in
+a different channel to move the review queue there instead.
+
+
 ## 🛠️ Utility
 
 ### `/help [command]`
