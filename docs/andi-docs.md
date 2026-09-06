@@ -149,7 +149,7 @@ exact-minute precision.
 
 **Parameters:**
 
-- `location` (optional) — City name, decimal, or DMS coordinates to check radiant visibility. Leave blank to use your saved…
+- `location` (optional) — Optional: city, decimal, or DMS coordinates to check radiant visibility (or use saved default).
 - `remember` (optional) — Also save this as your new default location (otherwise this is a one-off lookup)
 
 ### `/meteorshowers`
@@ -336,6 +336,48 @@ configured an N2YO API key — otherwise Celestrak alone is used).
 - `remember` (optional) — Also save this as your new default location (otherwise this is a one-off lookup)
 
 
+## 🚀 Launches
+
+### `/launches [count]`
+
+List several upcoming rocket launches
+
+Lists several upcoming rocket launches, sorted by launch date —
+for browsing what's coming up rather than just the very next one.
+
+**Usage:** `/launches` for the next 5, or `/launches count: 10`
+for more (max 10).
+
+Same cached-data source and freshness caveats as `/nextlaunch`
+— see that command's help for the details on why this isn't a
+live lookup and how the cache refresh schedule works.
+
+**Parameters:**
+
+- `count` (optional) — How many upcoming launches to show (default 5, max 10)
+
+### `/nextlaunch`
+
+The next upcoming rocket launch
+
+Shows the next scheduled rocket launch — mission, provider,
+rocket, launch site, and a countdown to the scheduled time (NET
+— "No Earlier Than," the standard industry term, since launch
+times are targets, not guarantees).
+
+**Usage:** just `/nextlaunch` — no arguments.
+
+Data comes from a cache refreshed in the background every 6 to
+60 minutes (more often as a launch gets closer), not a live
+lookup — the underlying free API caps anonymous access at 15
+calls/hour, far too few to call directly per command use. The
+footer shows exactly when the cached data was last refreshed.
+Rocket launches slip constantly (scrubs, holds, weather), more
+than almost anything else this bot tracks — treat the countdown
+and status as informational, not a confirmed guarantee, and
+expect it to occasionally lag a genuinely last-minute change.
+
+
 ## 📍 Location Tools
 
 ### `/clearlocation`
@@ -483,9 +525,10 @@ Use `/reminderstatus` to check current settings, or
 Report a bug for admin review before it's filed on GitHub
 
 Submits a bug report for admin review. It's posted as an embed
-in this server's review channel (set up via `/setreviewchannel`)
-with Approve/Reject buttons — nothing reaches GitHub until an
-admin approves it.
+in the bot's shared review channel (set up once by the bot
+owner via `/setreviewchannel`, covering every server) with
+Approve/Reject buttons — nothing reaches GitHub until an admin
+approves it.
 
 **Usage:** `/bugreport title: [short summary] description: [what
 happened, what you expected, and steps to reproduce]`. The more
@@ -504,9 +547,10 @@ Limited to 3 submissions per 10 minutes per person.
 Suggest a feature for admin review before it's filed on GitHub
 
 Submits a feature request for admin review. It's posted as an
-embed in this server's review channel (set up via
-`/setreviewchannel`) with Approve/Reject buttons — nothing
-reaches GitHub until an admin approves it.
+embed in the bot's shared review channel (set up once by the
+bot owner via `/setreviewchannel`, covering every server) with
+Approve/Reject buttons — nothing reaches GitHub until an admin
+approves it.
 
 **Usage:** `/featurerequest title: [short summary] description:
 [what you'd like to see and why it'd help]`.
@@ -520,16 +564,24 @@ Limited to 3 submissions per 10 minutes per person.
 
 ### `/setreviewchannel`
 
-Set this channel to receive bug reports/feature requests for review
+(Bot owner only) Set the one shared channel for reviewing bug reports and feature requests
 
-**(Admin — requires Manage Server)** Sets the current channel as
-this server's review queue: submissions from `/bugreport` and
-`/featurerequest` will post here with Approve/Reject buttons.
+**(Bot owner only)** Sets the current channel as the ONE shared
+review queue for the entire bot: submissions from `/bugreport`
+and `/featurerequest`, from every server the bot is in, will
+post here with Approve/Reject buttons.
 
 **Usage:** run this in whichever channel you want reports to
 land in — typically a private, staff-only channel, since it'll
-contain unreviewed, unfiltered user submissions. Run it again in
-a different channel to move the review queue there instead.
+contain unreviewed, unfiltered user submissions from anyone,
+anywhere the bot is installed. Run it again in a different
+channel to move the review queue there instead.
+
+This is restricted to the bot's actual owner, not just anyone
+with Manage Server — since this setting is now global rather
+than per-server, any admin being able to change it would mean
+any single server could silently redirect every OTHER server's
+reports too.
 
 
 ## 🛠️ Utility
@@ -551,6 +603,24 @@ knowing that don't fit in a one-line description.
 **Parameters:**
 
 - `command` (optional) — Get detailed help for this one command (optional — omit to see the full list)
+
+### `/permissions`
+
+Check whether the bot has the permissions it needs in this channel
+
+Checks the bot's ACTUAL, effective permissions in the channel
+you run this from — not just its role-level permissions, but
+the real computed result after accounting for any
+channel-specific overwrites (e.g. a private channel that
+doesn't inherit @everyone's permissions). Shows a green check
+or red X next to each permission Andi actually needs anywhere
+in the bot.
+
+**Usage:** run this in whichever channel is having trouble.
+Most "the bot doesn't respond here" or "a feature doesn't work
+in this channel" reports turn out to be exactly one missing
+permission below, not an actual bug — this makes that
+instantly obvious instead of guessing.
 
 ### `/status`
 

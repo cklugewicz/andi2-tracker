@@ -1,8 +1,10 @@
 # Andromeda2 — Astronomy Discord Bot
 
-A Discord bot with slash commands for astronomy enthusiasts — 22 commands covering sky conditions, planets, satellites, meteor showers, eclipses, and a couple of handy utilities.
+A Discord bot with slash commands for astronomy enthusiasts — 30 commands covering sky conditions, planets, deep-sky objects, satellites, rocket launches, meteor showers, eclipses, and a couple of handy utilities.
 
 ## Commands
+
+Commands are grouped the same way `/help` groups them in Discord — a handful of broad categories rather than one heading per command, which stopped being readable once the bot passed about a dozen commands. (The single source of truth for this grouping is `CATEGORY_FOR_COG` in `cogs/help.py`; if you add a cog, update that mapping so `/help` and this table don't drift apart from each other.)
 
 **☁️ Sky & Conditions**
 
@@ -23,6 +25,13 @@ A Discord bot with slash commands for astronomy enthusiasts — 22 commands cove
 | `/meteorshowers` | Full list of annual meteor showers, sorted by how soon each peaks |
 | `/eclipse` | Countdown to the next solar and lunar eclipses, with visibility regions |
 
+**🔭 Deep Sky Objects**
+
+| Command | Description |
+|---|---|
+| `/object <name> [location] [remember] [visibility]` | Look up a deep-sky object — Messier catalog (rich, hand-curated) or the broader NGC/IC catalogs (requires one-time setup, see notes below) — by number or common name, with type, size, brightness, distance, whether it's currently above your horizon, and optionally tonight's visibility chart in the same response |
+| `/visibility <name> [location] [remember] [date_str]` | Altitude-over-time chart for a deep-sky object across one night (or another date), with dark-sky periods shaded and a "good imaging altitude" threshold marked |
+
 **🛰️ Satellites & ISS**
 
 | Command | Description |
@@ -30,6 +39,13 @@ A Discord bot with slash commands for astronomy enthusiasts — 22 commands cove
 | `/issnow` | Current latitude/longitude of the ISS |
 | `/isspasses [location] [remember]` | Next 5 visible ISS passes, with times and duration |
 | `/satellite [name] [location] [norad_id] [remember]` | Track any named satellite (not just ISS) — position + upcoming passes, with N2YO freshness fallback |
+
+**🚀 Launches**
+
+| Command | Description |
+|---|---|
+| `/nextlaunch` | The next upcoming rocket launch — mission, provider, rocket, launch site, countdown |
+| `/launches [count]` | List several upcoming rocket launches (default 5, max 10) |
 
 **📍 Location Tools**
 
@@ -49,12 +65,23 @@ A Discord bot with slash commands for astronomy enthusiasts — 22 commands cove
 | `/disablereminders` | Turn off automatic meteor shower + eclipse reminders |
 | `/reminderstatus` | Show this server's reminder config, background-task health, and per-event send status |
 
+**🐛 Feedback**
+
+| Command | Description |
+|---|---|
+| `/bugreport <title> <description>` | Submits a bug report to the server's review channel (Approve/Reject buttons) — nothing reaches GitHub until an admin approves it |
+| `/featurerequest <title> <description>` | Submits a feature request the same way — review first, then GitHub if approved |
+| `/setreviewchannel` | (Bot owner only) Sets the current channel as the ONE shared review queue for every server's bug reports/feature requests |
+
 **🛠️ Utility**
 
 | Command | Description |
 |---|---|
 | `/status` | Bot uptime, guild/user counts, dependency versions, and host CPU/RAM usage |
-| `/help` | List every command and what it does, grouped the same way as this table, built live from the command tree |
+| `/permissions` | Checks whether the bot has the permissions it needs in the current channel, with a green check/red X per permission |
+| `/help [command]` | List every command grouped by category, or get detailed usage/examples for one specific command (autocomplete included) |
+
+No paid APIs required anywhere. NASA's APOD API has a free instant-signup key; N2YO is optional (only used as a `/satellite` and `/isspasses` fallback); `/bugreport`/`/featurerequest` need a GitHub token (see below) or they'll just tell users the feature isn't configured; everything else (Open-Meteo, Open Notify, Celestrak, JPL ephemeris via Skyfield, lightpollutionmap.app) needs no key at all.
 
 ### Locations: city names, coordinates, or a saved default
 
@@ -70,3 +97,11 @@ Coordinate input (decimal or DMS) is useful if you don't live near a place the g
 **Typing a location is a one-off lookup by default and does *not* change your saved default.** Add `remember: True` on any of those commands to also save that location as your new default in the same step — the response footer confirms when this happened. This is deliberate: a quick "what about Tokyo?" query shouldn't silently overwrite your actual home default.
 
 `/meteorshower` is the one exception to the usual "location required or saved default required" rule — the shower info itself is useful with no location at all, so leaving it out just skips the radiant-visibility part rather than erroring.
+
+### A note on the "(near X)" location enrichment — now a privacy measure, not just polish
+
+When someone enters raw coordinates (decimal or DMS) instead of a city name, `geocoding.py` reverse-geocodes a nearby place name using OpenStreetMap's free Nominatim endpoint — but the display behavior is now built around **privacy, not just cosmetics**. Most of this bot's commands aren't ephemeral, so whatever's shown in an embed is visible to everyone in the channel — and a 4-decimal-place coordinate is precise to roughly **11 meters**, easily specific enough to identify someone's actual house if they saved their home coordinates as their location. So:
+
+- **When a nearby place is found, the display shows *only* that** — `near Cookeville, TN` — never the raw numbers alongside it. The exact position genuinely never gets typed into the response.
+- **When no nearby place is found** (open ocean, deep wilderness), the fallback is coordinates rounded to **1 decimal place** (~11km resolution — city/neighborhood-level, not house-level) with an "(approximate)" label, rather than the precise value.
+- **This only affects displayed text.** The actual `(lat, lon)` values returned by `resolve_coordinates()` — and used for every real calculation (weather, ephemeris, satellite passes, everything) — are always full precision, completely unaffected. Nothing about the bot's actual accuracy changes; only what gets echoed back in a message.
