@@ -2,9 +2,6 @@
 
 Every command below works as a Discord slash command. `<required>` arguments must be given; `[optional]` ones can be left blank.
 
-
----
-
 ## ☁️ Sky & Conditions
 
 ### `/apod [date_str]`
@@ -87,8 +84,6 @@ that a verified link to a real live map is the more trustworthy option.
 - `location` (optional) — City name, decimal, or DMS coordinates. Leave blank to use your saved default.
 - `remember` (optional) — Also save this as your new default location (otherwise this is a one-off lookup)
 
-
----
 
 ## 🪐 Solar System
 
@@ -193,8 +188,6 @@ still be invisible.
 - `remember` (optional) — Also save this as your new default location (otherwise this is a one-off lookup)
 
 
----
-
 ## 🔭 Deep Sky Objects
 
 ### `/object <name> [location] [remember] [visibility]`
@@ -275,8 +268,6 @@ the curve, just exact-minute precision.
 - `date_str` (optional) — Optional date to check instead of tonight, format YYYY-MM-DD (e.g. 2026-09-15)
 
 
----
-
 ## 🛰️ Satellites & ISS
 
 ### `/issnow`
@@ -344,8 +335,6 @@ configured an N2YO API key — otherwise Celestrak alone is used).
 - `norad_id` (optional) — Optional: exact NORAD catalog number, e.g. 25544 for the ISS. Skips name search.
 - `remember` (optional) — Also save this as your new default location (otherwise this is a one-off lookup)
 
-
----
 
 ## 📍 Location Tools
 
@@ -437,8 +426,6 @@ what's currently saved, or `/clearlocation` to remove it.
 - `location` (required) — City name, decimal, or DMS coordinates (e.g. '36.1628,-85.5016' or '36°9'N,85°30'W')
 
 
----
-
 ## 🔔 Reminders (Admin)
 
 ### `/disablereminders`
@@ -488,8 +475,6 @@ Use `/reminderstatus` to check current settings, or
 
 - `lead_days` (optional) — Days before the event for the heads-up reminder (default 3). A day-of reminder always fires too.
 
-
----
 
 ## 🐛 Feedback
 
@@ -547,8 +532,6 @@ contain unreviewed, unfiltered user submissions. Run it again in
 a different channel to move the review queue there instead.
 
 
----
-
 ## 🛠️ Utility
 
 ### `/help [command]`
@@ -585,3 +568,4 @@ usage looks normal.
 CPU load and RAM usage are only available when the bot is running
 on Linux (which covers virtually every hosting platform, including
 Railway) — they show "N/A" if run locally on Windows instead.
+
