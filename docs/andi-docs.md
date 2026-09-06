@@ -188,6 +188,86 @@ still be invisible.
 - `remember` (optional) — Also save this as your new default location (otherwise this is a one-off lookup)
 
 
+## 🔭 Deep Sky Objects
+
+### `/object <name> [location] [remember] [visibility]`
+
+Look up a deep-sky object (Messier, NGC, or IC catalog)
+
+Looks up a deep-sky object — a galaxy, nebula, or star cluster
+— from the Messier catalog (110 objects, Charles Messier's
+18th-century "greatest hits" list, still the standard
+amateur-astronomy starting point) or the much larger NGC/IC
+catalogs (New General Catalogue / Index Catalogue, tens of
+thousands of objects).
+
+**Usage:** `/object name: M31`, `/object name: NGC 6960`,
+`/object name: Andromeda Galaxy`, and `/object name: Veil
+Nebula` all work. Messier objects are checked first (and
+include a hand-picked "notable" fact); NGC/IC results show the
+core data (type, size, brightness, coordinates) without that
+extra commentary, since that's not practical to write for tens
+of thousands of objects.
+
+Add a `location` (or have a saved default) to also see whether
+it's currently above your horizon; `remember: True` saves a
+typed location as your new default. Shows a thumbnail image
+from Wikipedia when one's available for that specific object.
+
+Add `visibility: True` (needs a location) to also get tonight's
+full altitude-over-time chart in the same response — or just
+click the "Show Visibility Chart" button that appears on this
+embed whenever a location was available, without needing to
+retype anything. For repeat checks on the same object without
+re-reading its full info every time, `/visibility` is its own
+standalone command.
+
+**Note:** the NGC/IC catalog requires a one-time setup step by
+the bot's operator (`fetch_ngc_catalog.py`) — without it, only
+the Messier catalog is searchable.
+
+**Parameters:**
+
+- `name` (required) — Catalog number (M31, NGC 6960, IC 434) or common name (Andromeda Galaxy, Veil Nebula)
+- `location` (optional) — Optional: see if it's currently above your horizon. City name, decimal, or DMS coordinates.
+- `remember` (optional) — Also save this as your new default location (otherwise this is a one-off lookup)
+- `visibility` (optional) — Also show tonight's visibility chart in the same response (requires a location)
+
+### `/visibility <name> [location] [remember] [date_str]`
+
+Altitude-over-time chart for a deep-sky object tonight (or another date)
+
+Shows a full altitude-over-time chart for a deep-sky object —
+when it rises, peaks, and sets across one night, with dark-sky
+(astronomical twilight/night) periods shaded and a dashed line
+at 30° marking a common "good imaging altitude" threshold.
+
+**Usage:** `/visibility name: M31 location: Flagstaff, AZ` for
+tonight, or add `date_str: 2026-09-15` to check a different
+night instead (useful for planning ahead). Unlike `/object`,
+a location is required here — there's no saved-default fallback
+skip, since a chart genuinely can't be produced without one.
+
+This is a separate command from `/object` specifically so
+checking an object's visibility repeatedly doesn't require
+re-reading its full catalog info every single time — though
+`/object`'s own `visibility: True` parameter (or the button on
+its embed) gives you both in one step when you want that instead.
+
+The chart samples every 15 minutes across the night — not a
+true continuous curve — and its "local time" x-axis is a
+longitude-based approximation, not your exact timezone/DST.
+Neither affects which hours are dark or the overall shape of
+the curve, just exact-minute precision.
+
+**Parameters:**
+
+- `name` (required) — Catalog number (M31, NGC 6960) or common name (Andromeda Galaxy, Veil Nebula)
+- `location` (optional) — City name, decimal, or DMS coordinates. Leave blank to use your saved default.
+- `remember` (optional) — Also save this as your new default location (otherwise this is a one-off lookup)
+- `date_str` (optional) — Optional date to check instead of tonight, format YYYY-MM-DD (e.g. 2026-09-15)
+
+
 ## 🛰️ Satellites & ISS
 
 ### `/issnow`
