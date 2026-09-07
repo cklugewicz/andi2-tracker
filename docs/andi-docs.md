@@ -215,12 +215,12 @@ typed location as your new default. Shows a thumbnail image
 from Wikipedia when one's available for that specific object.
 
 Add `visibility: True` (needs a location) to also get tonight's
-full altitude-over-time chart in the same response — or just
-click the "Show Visibility Chart" button that appears on this
-embed whenever a location was available, without needing to
-retype anything. For repeat checks on the same object without
-re-reading its full info every time, `/visibility` is its own
-standalone command.
+full altitude-over-time chart, sent as a separate follow-up
+message — or just click the "Show Visibility Chart" button
+that appears on this response whenever a location was
+available, without needing to retype anything. For repeat
+checks on the same object without re-reading its full info
+every time, `/visibility` is its own standalone command.
 
 **Note:** the NGC/IC catalog requires a one-time setup step by
 the bot's operator (`fetch_ngc_catalog.py`) — without it, only
@@ -266,6 +266,297 @@ the curve, just exact-minute precision.
 - `location` (optional) — City name, decimal, or DMS coordinates. Leave blank to use your saved default.
 - `remember` (optional) — Also save this as your new default location (otherwise this is a one-off lookup)
 - `date_str` (optional) — Optional date to check instead of tonight, format YYYY-MM-DD (e.g. 2026-09-15)
+
+
+## 📸 Astrophotography
+
+### `/deletecamera <name>`
+
+Delete one of your saved camera profiles
+
+Deletes one of your saved camera profiles.
+
+**Usage:** `/deletecamera name: [pick from autocomplete]`.
+
+**Parameters:**
+
+- `name` (required) — Which saved camera profile to delete
+
+### `/deletescope <name>`
+
+Delete one of your saved telescope profiles
+
+Deletes one of your saved telescope profiles.
+
+**Usage:** `/deletescope name: [pick from autocomplete]`.
+
+**Parameters:**
+
+- `name` (required) — Which saved telescope profile to delete
+
+### `/editcamera`
+
+Edit a saved camera profile with a guided dropdown and pre-filled form
+
+Shows a dropdown of your saved camera profiles — pick one to
+open a form pre-filled with its current name, pixel pitch, and
+read noise, so you can see exactly what's already saved and
+only change what you actually want to, without needing to
+check `/mycameras` first or retype values from memory.
+
+**Usage:** just `/editcamera` — no arguments. The form lets you
+rename the profile too, not just its numbers — renaming to a
+name you already have another camera saved under is rejected
+with a clear message rather than silently overwriting it.
+Clearing the read noise field (if one was previously saved)
+removes it; leaving pixel pitch or the name as shown keeps
+them unchanged.
+
+If you don't have any saved cameras yet, use `/savecamera` to
+add one first — this only edits existing profiles.
+
+### `/editscope`
+
+Edit a saved telescope profile with a guided dropdown and pre-filled form
+
+Shows a dropdown of your saved telescope profiles — pick one to
+open a form pre-filled with its current name, focal length, and
+aperture, so you can see exactly what's already saved and only
+change what you actually want to, without needing to check
+`/myscopes` first or retype values from memory.
+
+**Usage:** just `/editscope` — no arguments. The form lets you
+rename the profile too, not just its numbers — renaming to a
+name you already have another scope saved under is rejected
+with a clear message rather than silently overwriting it.
+
+If you don't have any saved scopes yet, use `/savescope` to add
+one first — this only edits existing profiles.
+
+### `/maxexposure [focal_length] [aperture] [scope] [camera] [pixel_pitch] [object_name] [declination]`
+
+Max exposure before star trailing on an untracked/tripod shot (NPF Rule)
+
+Calculates the maximum exposure time before star trailing
+becomes visible on an UNTRACKED shot (a fixed tripod, no
+mount tracking Earth's rotation) — using the Full NPF Rule, a
+real physics-based formula, not a rough rule of thumb like the
+"500 Rule." Accounts for your optics (focal length, aperture),
+camera sensor (pixel pitch), and the declination of whatever
+you're shooting — stars near the celestial poles trail much
+slower than stars near the celestial equator, so the same gear
+can tolerate meaningfully longer exposures depending on where
+you're pointed.
+
+**Usage:** `/maxexposure scope: [a saved profile] camera: [a
+saved profile]` once you've set both up with `/savescope` and
+`/savecamera` — or provide `focal_length`/`aperture` and/or
+`pixel_pitch` directly instead of either. A directly-given
+`focal_length` or `aperture` always overrides a saved scope's
+value for that one field, which is handy for a quick one-off
+change (a focal reducer added tonight, say) without re-saving
+the whole profile. Add `object_name: M31` to auto-fill
+declination from this bot's own catalog, or `declination: 45`
+to set it manually. Leaving both out defaults to 0° (the
+celestial equator), the worst-case assumption — safe, but
+possibly more conservative than necessary if you're actually
+shooting somewhere else in the sky.
+
+This is a real formula (Frédéric Michaud's Full NPF Rule), not
+a guess — but it's still a guideline: your own tolerance for
+trailing, focus precision, and atmospheric seeing all affect
+how a given exposure actually looks.
+
+**Parameters:**
+
+- `focal_length` (optional) — Lens/scope focal length in mm, if not using a saved scope (overrides scope's value if both given)
+- `aperture` (optional) — f-number, e.g. 2.8, if not using a saved scope (overrides scope's value if both given)
+- `scope` (optional) — One of your saved telescope profiles (see /savescope) -- supplies focal_length and aperture
+- `camera` (optional) — One of your saved camera profiles (see /savecamera)
+- `pixel_pitch` (optional) — Exact pixel pitch in microns, if not using a saved camera
+- `object_name` (optional) — A deep-sky object (M31, NGC 6960, etc.) to auto-fill declination
+- `declination` (optional) — Manual declination in degrees, if not using object_name (defaults to 0°, the worst case)
+
+### `/mycameras`
+
+List your saved camera profiles
+
+Lists every camera profile you've saved with `/savecamera`.
+
+**Usage:** just `/mycameras` — no arguments.
+
+### `/myscopes`
+
+List your saved telescope profiles
+
+Lists every telescope profile you've saved with `/savescope`.
+
+**Usage:** just `/myscopes` — no arguments.
+
+### `/savecamera <name> [sensor_preset] [pixel_pitch] [read_noise]`
+
+Save a named camera profile for use with /maxexposure and /subexposure
+
+Saves a named camera profile (pixel pitch and, optionally, read
+noise) for reuse with `/maxexposure` and `/subexposure`, so you
+don't have to look up or retype it every time — especially
+handy if you own more than one camera body.
+
+**Usage:** `/savecamera name: "Canon R6" sensor_preset: [pick
+one]` for a quick approximate pixel pitch, or `/savecamera
+name: "Canon R6" pixel_pitch: 5.94` if you know the exact value
+(this always takes precedence over a preset if both are
+given). Add `read_noise: 1.5` (in electrons, from your
+camera's spec sheet or SharpCap's sensor analysis) to also
+enable `/subexposure`'s precise calculation mode for this
+camera. `name` autocompletes your existing saved cameras as you
+type — picking one **updates that profile in place** rather
+than creating a duplicate, no need to delete and re-add it —
+and only touches the fields you actually provide: leaving out
+`read_noise` (or `pixel_pitch`/`sensor_preset`) on a later save
+keeps whatever was already saved for that field, so you can
+add or change read noise on an existing camera without needing
+to re-state its pixel pitch too, and vice versa.
+
+Also see `/editcamera` for a guided, dropdown-and-form way to
+update an existing profile, showing its current values instead
+of requiring you to know or retype them.
+
+Focal length and aperture stay as fresh inputs on
+`/maxexposure` each time, since those change with whatever
+lens you're using far more often than the camera body itself
+does.
+
+**Parameters:**
+
+- `name` (required) — A label for this camera, e.g. 'Canon R6' or 'Wide-field rig'
+- `sensor_preset` (optional) — Pick a common sensor type (approximate pixel pitch shown in the label)
+- `pixel_pitch` (optional) — Exact pixel pitch in microns, if you know it (overrides the preset)
+- `read_noise` (optional) — Camera's read noise in electrons at your usual gain, for /subexposure's precise mode
+
+### `/savescope <name> [focal_length] [aperture] [aperture_diameter_mm]`
+
+Save a named telescope profile for use with /maxexposure
+
+Saves a named telescope profile (focal length + aperture) for
+reuse with `/maxexposure`, so you don't have to retype your
+optics every time — especially handy with more than one scope.
+
+**Usage:** `/savescope name: "RedCat 51" focal_length: 250
+aperture: 4.9` if you know the f-number directly, or
+`/savescope name: "RedCat 51" focal_length: 250
+aperture_diameter_mm: 51` if you only know the raw aperture
+diameter (f-number gets derived as focal_length ÷ diameter).
+`name` autocompletes your existing saved scopes as you type —
+picking one **updates that profile in place** rather than
+creating a duplicate, no need to delete and re-add it — and
+only touches the fields you actually provide: leaving out
+`focal_length` (or both `aperture`/`aperture_diameter_mm`) on a
+later save keeps whatever was already saved for that field, so
+you can update just the aperture (a new reducer, say) without
+re-stating the focal length too, and vice versa.
+
+Also see `/editscope` for a guided, dropdown-and-form way to
+update an existing profile, showing its current values instead
+of requiring you to know or retype them.
+
+For a smart telescope (Seestar, Dwarf, Vespera, etc.), save a
+scope profile for its fixed optics here, and also save a
+camera profile (`/savecamera`) for its built-in sensor's pixel
+pitch — two separate profiles describing one device, since
+those are independent specs everywhere else in this bot.
+
+**Parameters:**
+
+- `name` (required) — A label for this scope, e.g. 'RedCat 51' or 'Seestar S50'
+- `focal_length` (optional) — Focal length in mm
+- `aperture` (optional) — f-number (e.g. 4.9) -- takes precedence over aperture_diameter_mm if both are given
+- `aperture_diameter_mm` (optional) — Physical aperture diameter in mm, if you don't know the f-number directly
+
+### `/subexposure <bortle> [guiding]`
+
+Recommended sub-exposure range for tracked astrophotography
+
+Suggests a practical sub-exposure length RANGE for TRACKED
+astrophotography (a properly polar-aligned mount actively
+tracking, e.g. a GEM) — a range from common astrophotography
+practice, not a precise calculation, for when you don't have
+camera-specific numbers handy. For an actual formula-based
+calculation instead, see `/subexposureprecise`.
+
+**Usage:** `/subexposure bortle: 4` (check your Bortle class
+with `/skyquality` first if you don't already know it) —
+optionally add `guiding` to narrow the range: unguided setups
+are capped by periodic error regardless of how dark your sky
+is, while excellent guiding with tight polar alignment lets
+you push toward the sky-limited ceiling instead.
+
+Treat the result as a sensible starting point to refine from,
+not a target to hit exactly — your specific camera's read
+noise and gain setting shift the real optimum in ways this
+can't account for without that data.
+
+**Parameters:**
+
+- `bortle` (required) — Your sky's Bortle class, 1 (darkest) to 9 (inner-city) -- check with /skyquality if unsure
+- `guiding` (optional) — Your tracking/guiding setup (defaults to Guided if not specified)
+
+### `/subexposureprecise <sky_background_rate> [camera] [read_noise] [noise_tolerance]`
+
+Precise sub-exposure calculation using Robin Glover's SharpCap formula
+
+Calculates a precise sub-exposure length for TRACKED
+astrophotography using Robin Glover's (SharpCap) real formula,
+confirmed directly from Glover's own posts on SharpCap's
+official forum: sub-exposure = C × read noise² ÷ sky
+background rate. For a rough starting-point range instead,
+needing no camera-specific numbers, see `/subexposure`.
+
+**Usage:** `/subexposureprecise camera: [saved profile]
+sky_background_rate: 0.6` — or `read_noise: 1.5` instead of
+`camera` if you haven't saved one. Get `sky_background_rate`
+(the Sky Background Electron Rate, in e⁻/pixel/s — a different
+thing from "sky brightness" in the Bortle/SQM sense, since this
+one also depends on your optics and camera, not just the sky)
+from [SharpCap's free Sky Background Calculator]
+(https://tools.sharpcap.co.uk) — deliberately not derived from
+Bortle class alone here, since that would need combining
+Bortle/SQM with your focal ratio, pixel size, and quantum
+efficiency together, a relationship SharpCap's own tool
+computes but doesn't publish as an open formula. Add
+`noise_tolerance` if you want tighter (2%, more subs needed)
+or looser (10%, fewer/longer subs) than the 5% default.
+
+**Narrowband filters** (e.g. a 3nm Ha filter) don't need a
+different formula or a separate multiplier — get a fresh
+`sky_background_rate` from SharpCap's calculator FOR that
+filter (entering its bandwidth in nm) rather than reusing a
+broadband value, and this same formula naturally produces the
+much longer sub-exposure narrowband needs, since a narrowband
+filter's effect is entirely captured by how much it lowers the
+measured sky background rate. Glover himself walked through
+exactly this case on the SharpCap forum: a 3nm filter measured
+around 0.14 e⁻/pixel/s versus a typical broadband value an
+order of magnitude higher, which is why the required
+sub-exposure jumps so much. Select Monochrome in SharpCap's
+calculator for a narrowband filter even on a mono camera in a
+filter wheel — his own reasoning is that essentially all the
+light passing a narrowband filter falls in one channel anyway.
+(A "×25 for narrowband" rule of thumb circulates online, but it
+traces to one forum poster's own guess, self-flagged as "maybe
+incorrect" — not confirmed by Glover the way the core formula
+was, so it's not used here.)
+
+Treat the result as a genuine minimum, not a target to hit
+exactly — many imagers go 2-3× longer on a well-guided mount
+and get excellent results.
+
+**Parameters:**
+
+- `sky_background_rate` (required) — Sky Background Electron Rate in e-/pixel/s, from SharpCap's free Sky Background Calculator
+- `camera` (optional) — A saved camera profile with read noise (see /savecamera) -- alternative to read_noise
+- `read_noise` (optional) — Camera's read noise in electrons -- alternative to camera, overrides a saved camera's value
+- `noise_tolerance` (optional) — How much read noise to accept (defaults to Standard/5%)
 
 
 ## 🛰️ Satellites & ISS
@@ -520,47 +811,37 @@ Use `/reminderstatus` to check current settings, or
 
 ## 🐛 Feedback
 
-### `/bugreport <title> <description>`
+### `/bugreport`
 
 Report a bug for admin review before it's filed on GitHub
 
-Submits a bug report for admin review. It's posted as an embed
-in the bot's shared review channel (set up once by the bot
-owner via `/setreviewchannel`, covering every server) with
-Approve/Reject buttons — nothing reaches GitHub until an admin
-approves it.
+Opens a form to submit a bug report for admin review — a short
+summary field, and a paragraph-style details field for what
+happened, what you expected, and steps to reproduce. Nothing
+reaches GitHub until an admin reviews and approves it in the
+bot's shared review channel.
 
-**Usage:** `/bugreport title: [short summary] description: [what
-happened, what you expected, and steps to reproduce]`. The more
-detail in `description`, the faster it can get fixed — include
-the exact command you ran and any error message you saw.
+**Usage:** just `/bugreport` — a popup form appears with two
+fields to fill in. The more detail in the details field, the
+faster it can get fixed — include the exact command you ran
+and any error message you saw.
 
 Limited to 3 submissions per 10 minutes per person.
 
-**Parameters:**
-
-- `title` (required) — Short summary of the bug (e.g. '/sky fails for Tokyo')
-- `description` (required) — What happened, what you expected, and steps to reproduce if you can
-
-### `/featurerequest <title> <description>`
+### `/featurerequest`
 
 Suggest a feature for admin review before it's filed on GitHub
 
-Submits a feature request for admin review. It's posted as an
-embed in the bot's shared review channel (set up once by the
-bot owner via `/setreviewchannel`, covering every server) with
-Approve/Reject buttons — nothing reaches GitHub until an admin
-approves it.
+Opens a form to submit a feature request for admin review — a
+short summary field, and a paragraph-style details field for
+what you'd like to see and why it'd help. Nothing reaches
+GitHub until an admin reviews and approves it in the bot's
+shared review channel.
 
-**Usage:** `/featurerequest title: [short summary] description:
-[what you'd like to see and why it'd help]`.
+**Usage:** just `/featurerequest` — a popup form appears with
+two fields to fill in.
 
 Limited to 3 submissions per 10 minutes per person.
-
-**Parameters:**
-
-- `title` (required) — Short summary of the idea (e.g. 'Add autocomplete to /satellite name')
-- `description` (required) — What you'd like to see and why it'd be useful
 
 ### `/setreviewchannel`
 
