@@ -1,6 +1,8 @@
 # Andromeda2 — Astronomy Discord Bot
 
-A Discord bot with slash commands for astronomy enthusiasts — 30 commands covering sky conditions, planets, deep-sky objects, satellites, rocket launches, meteor showers, eclipses, and a couple of handy utilities.
+A Discord bot with slash commands for astronomy enthusiasts — 38 commands covering sky conditions, planets, deep-sky objects, satellites, rocket launches, meteor showers, eclipses, astrophotography exposure planning, and a couple of handy utilities.
+
+**Requires Python 3.10 or newer.** This codebase uses `X | None` union type syntax throughout, which only works at runtime on 3.10+ — on an older Python, cogs fail to import with `TypeError: unsupported operand type(s) for |: 'type' and 'NoneType'`. Both `bot.py` and `generate_docs.py` check this on startup and exit with a clear message rather than that cryptic error, but it's worth having the right Python installed from the start. Check with `python3 --version` before creating your virtual environment.
 
 ## Commands
 
@@ -10,10 +12,10 @@ Commands are grouped the same way `/help` groups them in Discord — a handful o
 
 | Command | Description |
 |---|---|
-| `/apod [date]` | NASA's Astronomy Picture of the Day (optionally for a past date, `YYYY-MM-DD`) |
-| `/sky [location] [remember]` | Current cloud cover, visibility, and a plain-language viewing verdict |
-| `/skyquality [location] [remember]` | Light pollution map link + Bortle scale reference for a location |
-| `/moonphase` | Current moon phase and % illumination |
+| `/apod [date_str] [random_date]` | NASA's Astronomy Picture of the Day — today by default, a specific past date, or a random pick from the full archive — Components V2, image via MediaGallery |
+| `/sky [location] [remember]` | Current cloud cover, visibility, and a plain-language viewing verdict, plus a 12-hour cloud cover forecast chart |
+| `/skyquality [location] [remember]` | Light pollution map link + a Bortle scale comparison illustration for a location |
+| `/moonphase` | Current moon phase and % illumination — Components V2 |
 
 **🪐 Solar System**
 
@@ -23,6 +25,8 @@ Commands are grouped the same way `/help` groups them in Discord — a handful o
 | `/conjunction [location] [remember] [days_ahead]` | Which planets (or the Moon) are closest together right now, or each pair's closest approach over the next N days |
 | `/meteorshower [location] [remember]` | The next upcoming major meteor shower, with peak date, rate, and (if a location's given) whether the radiant is above your horizon at peak |
 | `/meteorshowers` | Full list of annual meteor showers, sorted by how soon each peaks |
+| `/comet <name> [location] [remember]` | Live position and (with a location) visibility for a specific comet, computed from the Minor Planet Center's current orbital elements |
+| `/comets` | Notable periodic comets and their next perihelion dates, sorted by soonest |
 | `/eclipse` | Countdown to the next solar and lunar eclipses, with visibility regions |
 
 **🔭 Deep Sky Objects**
@@ -31,6 +35,22 @@ Commands are grouped the same way `/help` groups them in Discord — a handful o
 |---|---|
 | `/object <name> [location] [remember] [visibility]` | Look up a deep-sky object — Messier catalog (rich, hand-curated) or the broader NGC/IC catalogs (requires one-time setup, see notes below) — by number or common name, with type, size, brightness, distance, whether it's currently above your horizon, and optionally tonight's visibility chart in the same response |
 | `/visibility <name> [location] [remember] [date_str]` | Altitude-over-time chart for a deep-sky object across one night (or another date), with dark-sky periods shaded and a "good imaging altitude" threshold marked |
+
+**📸 Astrophotography**
+
+| Command | Description |
+|---|---|
+| `/maxexposure [focal_length] [aperture] [scope] [camera] [pixel_pitch] [object_name] [declination]` | Max exposure before star trailing on an untracked/tripod shot, via the real Full NPF Rule formula — can pull optics from a saved scope, a camera's pixel pitch from a saved profile, and auto-fill declination from a named deep-sky object |
+| `/subexposure <bortle> [guiding]` | Recommended sub-exposure range for tracked astrophotography, from common practice — a rough starting point, not a calculation |
+| `/subexposureprecise <sky_background_rate> [camera] [read_noise] [noise_tolerance]` | Precise sub-exposure calculation using Robin Glover's (SharpCap) confirmed formula |
+| `/savecamera <name> [sensor_preset] [pixel_pitch] [read_noise]` | Save a named camera profile (pixel pitch, and optionally read noise for `/subexposure`'s precise mode) for reuse — supports more than one camera per person |
+| `/editcamera` | Guided update: pick a saved camera from a dropdown, then edit its name, pixel pitch, and read noise in a pre-filled form |
+| `/mycameras` | List your saved camera profiles |
+| `/deletecamera <name>` | Delete one of your saved camera profiles |
+| `/savescope <name> [focal_length] [aperture] [aperture_diameter_mm]` | Save a named telescope profile (focal length + aperture) for reuse in `/maxexposure` — supports more than one scope per person |
+| `/editscope` | Guided update: pick a saved scope from a dropdown, then edit its name, focal length, and aperture in a pre-filled form |
+| `/myscopes` | List your saved telescope profiles |
+| `/deletescope <name>` | Delete one of your saved telescope profiles |
 
 **🛰️ Satellites & ISS**
 
@@ -69,8 +89,8 @@ Commands are grouped the same way `/help` groups them in Discord — a handful o
 
 | Command | Description |
 |---|---|
-| `/bugreport <title> <description>` | Submits a bug report to the server's review channel (Approve/Reject buttons) — nothing reaches GitHub until an admin approves it |
-| `/featurerequest <title> <description>` | Submits a feature request the same way — review first, then GitHub if approved |
+| `/bugreport` | Opens a popup form (short summary + paragraph-style details field) to submit a bug report for admin review — nothing reaches GitHub until approved |
+| `/featurerequest` | Opens the same popup-form flow to suggest a feature — review first, then GitHub if approved |
 | `/setreviewchannel` | (Bot owner only) Sets the current channel as the ONE shared review queue for every server's bug reports/feature requests |
 
 **🛠️ Utility**
@@ -80,8 +100,6 @@ Commands are grouped the same way `/help` groups them in Discord — a handful o
 | `/status` | Bot uptime, guild/user counts, dependency versions, and host CPU/RAM usage |
 | `/permissions` | Checks whether the bot has the permissions it needs in the current channel, with a green check/red X per permission |
 | `/help [command]` | List every command grouped by category, or get detailed usage/examples for one specific command (autocomplete included) |
-
-No paid APIs required anywhere. NASA's APOD API has a free instant-signup key; N2YO is optional (only used as a `/satellite` and `/isspasses` fallback); `/bugreport`/`/featurerequest` need a GitHub token (see below) or they'll just tell users the feature isn't configured; everything else (Open-Meteo, Open Notify, Celestrak, JPL ephemeris via Skyfield, lightpollutionmap.app) needs no key at all.
 
 ### Locations: city names, coordinates, or a saved default
 

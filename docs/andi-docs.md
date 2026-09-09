@@ -4,24 +4,30 @@ Every command below works as a Discord slash command. `<required>` arguments mus
 
 ## ☁️ Sky & Conditions
 
-### `/apod [date_str]`
+### `/apod [date_str] [random_date]`
 
 NASA's Astronomy Picture of the Day
 
 Shows NASA's Astronomy Picture of the Day (APOD) — a different
 space image or photo every day, with an expert-written explanation.
 
-**Usage:** `/apod` for today's picture, or `/apod date_str: 2024-07-20`
+**Usage:** `/apod` for today's picture, `/apod date_str: 2024-07-20`
 for a specific past date (format: `YYYY-MM-DD`, e.g. the Moon
-landing anniversary).
+landing anniversary), or `/apod random_date: True` to get a
+surprise pick from anywhere in APOD's full archive back to its
+very first entry on June 16, 1995. If you give both a specific
+`date_str` and `random_date: True`, the specific date wins —
+`random_date` only kicks in when you haven't asked for a
+particular day.
 
 Occasionally NASA's picture of the day is a video instead of an
-image — Discord embeds can't play video directly, so you'll get
+image — this can't be played directly in Discord, so you'll get
 a clickable link and a thumbnail (if NASA provided one) instead.
 
 **Parameters:**
 
-- `date_str` (optional) — Optional date (YYYY-MM-DD). Defaults to today.
+- `date_str` (optional) — Optional date (YYYY-MM-DD). Defaults to today. Takes precedence over random if both are given.
+- `random_date` (optional) — Pick a random date from APOD's full archive (since June 16, 1995) instead of today
 
 ### `/moonphase`
 
@@ -41,18 +47,23 @@ skies near New Moon) or is better suited to lunar/planetary viewing
 
 ### `/sky [location] [remember]`
 
-Current sky/viewing conditions for a location
+Current sky/viewing conditions + cloud forecast for a location
 
 Checks current cloud cover, visibility, humidity, and wind for a
 location, with a plain-language verdict on how good tonight looks
-for stargazing (🟢 Excellent to 🔴 Poor).
+for stargazing (🟢 Excellent to 🔴 Poor) — plus a chart of how
+cloud cover is forecast to change over the next 12 hours, so you
+can see whether it's expected to clear up or get worse.
 
 **Usage:** `/sky location: Flagstaff, AZ` — or just `/sky` if you've
 saved a default with `/setlocation`. Add `remember: True` to also
 save whatever location you type as your new default.
 
-Cloud cover is broken down by altitude (low/mid/high clouds), since
-thin high cirrus matters less for observing than a low overcast layer.
+Cloud cover is broken down by altitude (low/mid/high clouds) in
+the text, since thin high cirrus matters less for observing than
+a low overcast layer — but the chart itself shows only total
+cloud cover, the single most actionable number, kept to one line
+so it's readable at a glance.
 
 **Parameters:**
 
@@ -61,11 +72,13 @@ thin high cirrus matters less for observing than a low overcast layer.
 
 ### `/skyquality [location] [remember]`
 
-Light pollution map link + Bortle scale reference for a location
+Light pollution map link + Bortle scale illustration for a location
 
 Gives you a link to a live light-pollution map for a location,
-plus a quick-reference table of what each Bortle scale number
-(1–9) actually means for what you can see with the naked eye.
+plus a visual comparison of what each Bortle scale class (1–9)
+actually looks like — how much of the night sky's detail
+disappears as light pollution increases, from an excellent
+dark-sky site through to an inner-city sky.
 
 **Usage:** `/skyquality location: Flagstaff, AZ` — or just
 `/skyquality` with a saved default location. Add `remember: True`
@@ -79,6 +92,11 @@ tried pulling a number from a government satellite data source
 directly, and that data source turned out to be unreliable enough
 that a verified link to a real live map is the more trustworthy option.
 
+The comparison image is ESO's own "How light pollution affects
+the dark night skies" illustration (credit: ESO/P. Horálek,
+M. Wallner), licensed CC BY 4.0 — credited directly in this
+response's own footer, with a link back to the source.
+
 **Parameters:**
 
 - `location` (optional) — City name, decimal, or DMS coordinates. Leave blank to use your saved default.
@@ -86,6 +104,52 @@ that a verified link to a real live map is the more trustworthy option.
 
 
 ## 🪐 Solar System
+
+### `/comet <name> [location] [remember]`
+
+Live position and visibility for a specific comet
+
+Shows a comet's current distance from Earth and the Sun, and
+(with a location) whether it's currently above your horizon —
+computed live from the Minor Planet Center's own orbital
+elements, the same technique this bot already uses for
+/planets, so this works for any comet MPC currently tracks
+(800+), not just famous ones.
+
+**Usage:** `/comet name: Halley` — `name` autocompletes as you
+type, matching against MPC's own designations (which include
+common names in parentheses, so "neowise" or "halley" both
+work without needing the exact formal designation). Add a
+`location` (or have a saved default) to also see whether it's
+above your horizon right now. Add `remember: True` to save a
+typed location as your new default.
+
+This deliberately does NOT predict brightness — comet
+brightness is notoriously unreliable to forecast, unlike
+planets. Check the linked TheSkyLive page in the response for
+real observed brightness instead of a theoretical guess.
+
+**Parameters:**
+
+- `name` (required) — Comet name or designation, e.g. 'Halley', '1P', or 'NEOWISE'
+- `location` (optional) — Optional: city, decimal, or DMS coordinates to check visibility (or use saved default).
+- `remember` (optional) — Also save this as your new default location (otherwise this is a one-off lookup)
+
+### `/comets`
+
+Notable periodic comets and their next perihelion dates
+
+Lists well-known PERIODIC comets — ones with predictable,
+verified return dates — sorted by how soon each next reaches
+perihelion (closest approach to the Sun).
+
+**Usage:** just `/comets` — no arguments. This is deliberately
+NOT a list of what's currently bright in the sky — the most
+exciting comets are usually new discoveries with no predictable
+schedule, which a static list like this can never anticipate.
+For that, check the linked TheSkyLive page in the response. For
+live position/visibility on any comet the Minor Planet Center
+currently tracks (not just these six), use `/comet <name>`.
 
 ### `/conjunction [location] [remember] [days_ahead]`
 
