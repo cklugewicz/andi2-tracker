@@ -50,10 +50,14 @@ skies near New Moon) or is better suited to lunar/planetary viewing
 Current sky/viewing conditions + cloud forecast for a location
 
 Checks current cloud cover, visibility, humidity, and wind for a
-location, with a plain-language verdict on how good tonight looks
-for stargazing (🟢 Excellent to 🔴 Poor) — plus a chart of how
-cloud cover is forecast to change over the next 12 hours, so you
-can see whether it's expected to clear up or get worse.
+location, with a plain-language verdict on how good conditions
+are right now (🟢 Excellent to 🔴 Poor, looking a few hours
+ahead too) — plus a chart of how cloud cover is forecast to
+change over the next 12 hours, and a separate "Tonight" verdict
+specifically for the astronomical darkness window (when the
+sky is actually dark enough for deep-sky observing), since a
+"right now" reading can look great in the afternoon while the
+coming night is forecast to be heavily clouded.
 
 **Usage:** `/sky location: Flagstaff, AZ` — or just `/sky` if you've
 saved a default with `/setlocation`. Add `remember: True` to also
@@ -64,6 +68,12 @@ the text, since thin high cirrus matters less for observing than
 a low overcast layer — but the chart itself shows only total
 cloud cover, the single most actionable number, kept to one line
 so it's readable at a glance.
+
+The "Tonight" section is cloud-cover only (no forecasted
+visibility figure exists to also factor in, unlike the current-
+conditions verdict) and may not appear at all for extreme
+high-latitude locations where astronomical darkness doesn't
+occur, or if the forecast doesn't reach far enough to find it.
 
 **Parameters:**
 
@@ -195,16 +205,33 @@ viewing — regular sunglasses are not safe for this.
 Info on the next upcoming meteor shower
 
 Shows the next upcoming major meteor shower — peak date, typical
-rate (meteors/hour), and what causes it (a comet or asteroid's
-debris trail).
+rate (ZHR — see below), and what causes it (a comet or
+asteroid's debris trail).
+
+**What ZHR actually means:** the Zenith Hourly Rate is the
+*theoretical maximum* meteor count per hour, assuming the
+radiant sits directly overhead (zenith) under perfect dark-sky
+conditions. It's a standardized reference figure for comparing
+showers, not a promise of what you'll actually count on a given
+night — real rates are always lower, scaled down by how high the
+radiant actually is (see the altitude ratings below), plus
+moonlight, light pollution, and local weather, none of which
+this command measures.
 
 **Usage:** `/meteorshower` alone works fine and shows the shower
 info with no location needed. Add a `location` (or have a saved
-default) to *also* see whether the shower's radiant point will be
-above your horizon around local midnight on peak night — a shower
-can be "happening" globally while its radiant sits below the
-horizon for your specific spot on Earth. Add `remember: True` to
-save a typed location as your new default.
+default) to *also* see the radiant's altitude at local midnight
+on peak night, rated Excellent/Good/Fair/Poor/Below Horizon
+(verified against a published radiant-altitude viewing-quality
+scale: above 50° is excellent, above 30° is good, below 20°
+atmospheric extinction meaningfully cuts into observed rates,
+below 0° it hasn't risen yet) — a shower can be "happening"
+globally while its radiant sits low or below the horizon for
+your specific spot on Earth. When a location resolves, you also
+get a simple chart showing roughly where to look: altitude as
+height above a generic horizon, azimuth as which compass
+direction(s) appear around the radiant marker. Add `remember: True`
+to save a typed location as your new default.
 
 The "local midnight" used for the radiant check is an approximation
 (based on longitude, not your actual timezone/DST), accurate enough
@@ -457,34 +484,67 @@ Lists every telescope profile you've saved with `/savescope`.
 
 **Usage:** just `/myscopes` — no arguments.
 
-### `/savecamera <name> [sensor_preset] [pixel_pitch] [read_noise]`
+### `/savecamera <save_as> [camera_model] [sensor_preset] [pixel_pitch] [read_noise]`
 
 Save a named camera profile for use with /maxexposure and /subexposure
 
-Saves a named camera profile (pixel pitch and, optionally, read
-noise) for reuse with `/maxexposure` and `/subexposure`, so you
-don't have to look up or retype it every time — especially
-handy if you own more than one camera body.
+Saves a named camera profile (pixel pitch, resolution, and
+optionally read noise) for reuse with `/maxexposure` and
+`/subexposure`, so you don't have to look up or retype it
+every time — especially handy if you own more than one camera
+body.
 
-**Usage:** `/savecamera name: "Canon R6" sensor_preset: [pick
-one]` for a quick approximate pixel pitch, or `/savecamera
-name: "Canon R6" pixel_pitch: 5.94` if you know the exact value
-(this always takes precedence over a preset if both are
-given). Add `read_noise: 1.5` (in electrons, from your
-camera's spec sheet or SharpCap's sensor analysis) to also
-enable `/subexposure`'s precise calculation mode for this
-camera. `name` autocompletes your existing saved cameras as you
+**Recommended: keep the first save simple, then finish with
+`/editcamera`.** Discord submits this command the instant you
+press Enter — `save_as` is the only required field, so hitting
+Enter partway through picking a `camera_model` or typing specs
+submits immediately with just that name, not what you meant to
+enter next. The reliable flow: `/savecamera save_as: "My
+ASI533" camera_model: [pick from autocomplete]` (just those
+two — this alone fills in verified pixel pitch and
+resolution), then use `/editcamera` to add read noise or
+adjust anything else. Its dropdown-then-form flow can't
+accidentally half-submit the way a slash command with several
+optional fields can.
+
+**Usage:** `/savecamera save_as: "My ASI533" camera_model:
+[pick from autocomplete]` for a known camera body — this fills
+in verified pixel pitch and resolution (needed for a future
+field-of-view feature) in one step, more precise than a
+generic `sensor_preset`, and for the three ZWO astro cameras
+currently listed, also fills in a documented read noise figure
+at a specific high-gain setting — the confirmation message
+after saving says which. If your exact model isn't listed, use
+`sensor_preset: [pick from autocomplete]` for a quick
+approximate pixel pitch instead, or `pixel_pitch: 5.94` if you
+know the exact value yourself — precedence is `pixel_pitch` >
+`camera_model` > `sensor_preset` when more than one is given,
+and the same `read_noise` > `camera_model` precedence applies
+for read noise. Add `read_noise: 1.5` yourself (in electrons,
+from your camera's own spec sheet, SharpCap's sensor analysis,
+or your own measurements at your usual gain) to override the
+camera_model figure or provide one where none exists — the
+three consumer DSLR/mirrorless bodies in `camera_model` have no
+read noise figure at all, since manufacturers don't publish
+one the way dedicated astro camera makers do.
+
+Both `camera_model` and `sensor_preset` autocomplete as you
+type, pulling from a shared database rather than a fixed list
+— so new camera models or presets added there show up
+immediately, without needing a bot update.
+
+`save_as` autocompletes your existing saved cameras as you
 type — picking one **updates that profile in place** rather
 than creating a duplicate, no need to delete and re-add it —
 and only touches the fields you actually provide: leaving out
-`read_noise` (or `pixel_pitch`/`sensor_preset`) on a later save
-keeps whatever was already saved for that field, so you can
-add or change read noise on an existing camera without needing
-to re-state its pixel pitch too, and vice versa.
+any field on a later save keeps whatever was already saved for
+it, so you can add or change one thing without needing to
+re-state everything else.
 
 Also see `/editcamera` for a guided, dropdown-and-form way to
-update an existing profile, showing its current values instead
-of requiring you to know or retype them.
+update an existing profile (including its resolution), showing
+its current values instead of requiring you to know or retype
+them.
 
 Focal length and aperture stay as fresh inputs on
 `/maxexposure` each time, since those change with whatever
@@ -493,12 +553,13 @@ does.
 
 **Parameters:**
 
-- `name` (required) — A label for this camera, e.g. 'Canon R6' or 'Wide-field rig'
-- `sensor_preset` (optional) — Pick a common sensor type (approximate pixel pitch shown in the label)
-- `pixel_pitch` (optional) — Exact pixel pitch in microns, if you know it (overrides the preset)
+- `save_as` (required) — A label to save this camera under, e.g. 'Canon R6' or 'Wide-field rig'
+- `camera_model` (optional) — Pick a known camera body for verified pixel pitch + resolution (overrides sensor_preset)
+- `sensor_preset` (optional) — Pick a generic sensor type (approximate pixel pitch shown in the label)
+- `pixel_pitch` (optional) — Exact pixel pitch in microns, if you know it (overrides camera_model/sensor_preset)
 - `read_noise` (optional) — Camera's read noise in electrons at your usual gain, for /subexposure's precise mode
 
-### `/savescope <name> [focal_length] [aperture] [aperture_diameter_mm]`
+### `/savescope <save_as> [telescope_model] [focal_length] [aperture] [aperture_diameter_mm]`
 
 Save a named telescope profile for use with /maxexposure
 
@@ -506,13 +567,38 @@ Saves a named telescope profile (focal length + aperture) for
 reuse with `/maxexposure`, so you don't have to retype your
 optics every time — especially handy with more than one scope.
 
-**Usage:** `/savescope name: "RedCat 51" focal_length: 250
-aperture: 4.9` if you know the f-number directly, or
-`/savescope name: "RedCat 51" focal_length: 250
-aperture_diameter_mm: 51` if you only know the raw aperture
-diameter (f-number gets derived as focal_length ÷ diameter).
-`name` autocompletes your existing saved scopes as you type —
-picking one **updates that profile in place** rather than
+**Recommended: keep the first save simple, then finish with
+`/editscope`.** Discord submits this command the instant you
+press Enter — `save_as` is the only required field, so hitting
+Enter partway through picking a `telescope_model` submits
+immediately with just that name. The reliable flow:
+`/savescope save_as: "My RedCat" telescope_model: [pick from
+autocomplete]` (just those two — this alone fills in verified
+focal length and aperture), then use `/editscope` for anything
+else. Its dropdown-then-form flow can't accidentally
+half-submit the way a slash command with several optional
+fields can.
+
+**Usage:** `/savescope save_as: "My RedCat" telescope_model:
+[pick from autocomplete]` for a known telescope body — this
+fills in verified focal length and aperture in one step. If
+your exact model isn't listed, use `/savescope save_as: "RedCat
+51" focal_length: 250 aperture: 4.9` if you know the f-number
+directly, or `focal_length: 250 aperture_diameter_mm: 51` if
+you only know the raw aperture diameter (f-number gets derived
+as focal_length ÷ diameter). Precedence when more than one
+source is given: `focal_length` > `telescope_model`'s focal
+length; `aperture` > `aperture_diameter_mm` > `telescope_model`'s
+aperture diameter. Using a `telescope_model` together with your
+own `focal_length` (e.g. a focal reducer) correctly computes
+the resulting effective f-ratio, not the stock one.
+
+`telescope_model` autocompletes as you type, pulling from a
+shared database rather than a fixed list — new models added
+there show up immediately, without needing a bot update.
+
+`save_as` autocompletes your existing saved scopes as you type
+— picking one **updates that profile in place** rather than
 creating a duplicate, no need to delete and re-add it — and
 only touches the fields you actually provide: leaving out
 `focal_length` (or both `aperture`/`aperture_diameter_mm`) on a
@@ -532,10 +618,11 @@ those are independent specs everywhere else in this bot.
 
 **Parameters:**
 
-- `name` (required) — A label for this scope, e.g. 'RedCat 51' or 'Seestar S50'
-- `focal_length` (optional) — Focal length in mm
-- `aperture` (optional) — f-number (e.g. 4.9) -- takes precedence over aperture_diameter_mm if both are given
-- `aperture_diameter_mm` (optional) — Physical aperture diameter in mm, if you don't know the f-number directly
+- `save_as` (required) — A label to save this scope under, e.g. 'RedCat 51' or 'Seestar S50'
+- `telescope_model` (optional) — Pick a known telescope body for verified focal length + aperture
+- `focal_length` (optional) — Focal length in mm (overrides telescope_model if both given)
+- `aperture` (optional) — f-number (e.g. 4.9) -- takes precedence over aperture_diameter_mm/telescope_model if given
+- `aperture_diameter_mm` (optional) — Physical aperture diameter in mm (overrides telescope_model's own diameter)
 
 ### `/subexposure <bortle> [guiding]`
 
@@ -629,13 +716,22 @@ and get excellent results.
 
 Current location of the International Space Station
 
-Shows exactly where the International Space Station is right now
-(latitude/longitude), with a link to see it on a map.
+Shows exactly where the International Space Station is right
+now (latitude/longitude/altitude), plus a map of its ground
+track — the path it traces over Earth's surface — for about an
+hour on either side of this moment.
 
 **Usage:** just `/issnow` — no arguments. The ISS orbits Earth
-roughly every 90 minutes, so this position is only accurate for
-a moment — for *when it'll pass over your specific location* and
-be visible, use `/isspasses` instead.
+roughly every 92 minutes, so this position is only accurate for
+a moment — for *when it'll pass over your specific location*
+and be visible, use `/isspasses` instead (which also has a
+button to jump straight to this same live view). For any OTHER
+satellite's position (not just the ISS), see `/satellite`.
+
+Position comes from real orbital elements (a TLE from
+Celestrak, cross-checked against N2YO for freshness under the
+same logic `/satellite` uses), not a single reported point —
+which is also what makes the ground track possible at all.
 
 ### `/isspasses [location] [remember]`
 
@@ -656,6 +752,10 @@ even when it's technically overhead. Positions are computed
 locally using real orbital data (Celestrak), not a third-party
 pass-prediction service.
 
+Includes a "Show Current ISS Position" button for jumping
+straight to `/issnow`'s live position + ground-track map
+without retyping the command.
+
 **Parameters:**
 
 - `location` (optional) — City name, decimal, or DMS coordinates. Leave blank to use your saved default.
@@ -668,11 +768,20 @@ Track any named satellite: position + upcoming passes
 Tracks any satellite — not just the ISS — showing its current
 position and upcoming visible passes over a location.
 
-**Usage:** provide either `name` (its exact Celestrak catalog name,
-e.g. `HUBBLE SPACE TELESCOPE`) or `norad_id` (its numeric catalog
-ID, e.g. `25544` for the ISS) — not both. Add `location` (or use a
-saved default) for pass predictions; `remember: True` saves a typed
-location as your new default.
+**Usage:** provide either `name` (autocompletes as you type, or
+type its exact Celestrak catalog name directly, e.g. `HUBBLE
+SPACE TELESCOPE`) or `norad_id` (its numeric catalog ID, e.g.
+`25544` for the ISS) — not both. Add `location` (or use a
+saved default) for pass predictions; `remember: True` saves a
+typed location as your new default.
+
+`name` autocompletes from Celestrak's own "visual" group —
+officially the ~100 brightest, naked-eye-visible satellites,
+the ones most people actually want to track — not the full
+catalog of 10,000+ tracked objects. Anything outside that
+curated list (a specific CubeSat, a particular Starlink
+satellite) still works, just by typing its exact Celestrak
+name manually instead of picking from the list.
 
 **Examples:**
 • `/satellite name: HUBBLE SPACE TELESCOPE location: Flagstaff, AZ`
@@ -686,7 +795,7 @@ configured an N2YO API key — otherwise Celestrak alone is used).
 **Parameters:**
 
 - `location` (optional) — City name, decimal, or DMS coordinates for pass predictions. Leave blank for saved default.
-- `name` (optional) — Satellite name as catalogued on Celestrak, e.g. 'HUBBLE SPACE TELESCOPE' (omit if using norad_id)
+- `name` (optional) — Autocompletes bright/well-known satellites; any exact Celestrak name works too
 - `norad_id` (optional) — Optional: exact NORAD catalog number, e.g. 25544 for the ISS. Skips name search.
 - `remember` (optional) — Also save this as your new default location (otherwise this is a one-off lookup)
 

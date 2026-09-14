@@ -2,8 +2,6 @@
 
 A Discord bot with slash commands for astronomy enthusiasts — 38 commands covering sky conditions, planets, deep-sky objects, satellites, rocket launches, meteor showers, eclipses, astrophotography exposure planning, and a couple of handy utilities.
 
-**Requires Python 3.10 or newer.** This codebase uses `X | None` union type syntax throughout, which only works at runtime on 3.10+ — on an older Python, cogs fail to import with `TypeError: unsupported operand type(s) for |: 'type' and 'NoneType'`. Both `bot.py` and `generate_docs.py` check this on startup and exit with a clear message rather than that cryptic error, but it's worth having the right Python installed from the start. Check with `python3 --version` before creating your virtual environment.
-
 ## Commands
 
 Commands are grouped the same way `/help` groups them in Discord — a handful of broad categories rather than one heading per command, which stopped being readable once the bot passed about a dozen commands. (The single source of truth for this grouping is `CATEGORY_FOR_COG` in `cogs/help.py`; if you add a cog, update that mapping so `/help` and this table don't drift apart from each other.)
@@ -13,7 +11,7 @@ Commands are grouped the same way `/help` groups them in Discord — a handful o
 | Command | Description |
 |---|---|
 | `/apod [date_str] [random_date]` | NASA's Astronomy Picture of the Day — today by default, a specific past date, or a random pick from the full archive — Components V2, image via MediaGallery |
-| `/sky [location] [remember]` | Current cloud cover, visibility, and a plain-language viewing verdict, plus a 12-hour cloud cover forecast chart |
+| `/sky [location] [remember]` | Current cloud cover, visibility, and a plain-language viewing verdict; a 12-hour cloud cover forecast chart; and a separate forecast for tonight's astronomical darkness window |
 | `/skyquality [location] [remember]` | Light pollution map link + a Bortle scale comparison illustration for a location |
 | `/moonphase` | Current moon phase and % illumination — Components V2 |
 
@@ -23,7 +21,7 @@ Commands are grouped the same way `/help` groups them in Discord — a handful o
 |---|---|
 | `/planets [location] [remember]` | Which planets are currently above the horizon, with altitude/azimuth |
 | `/conjunction [location] [remember] [days_ahead]` | Which planets (or the Moon) are closest together right now, or each pair's closest approach over the next N days |
-| `/meteorshower [location] [remember]` | The next upcoming major meteor shower, with peak date, rate, and (if a location's given) whether the radiant is above your horizon at peak |
+| `/meteorshower [location] [remember]` | The next upcoming major meteor shower, with peak date, ZHR, and (if a location's given) a verified Excellent/Good/Fair/Poor altitude rating plus a chart showing the radiant's position above a generic horizon |
 | `/meteorshowers` | Full list of annual meteor showers, sorted by how soon each peaks |
 | `/comet <name> [location] [remember]` | Live position and (with a location) visibility for a specific comet, computed from the Minor Planet Center's current orbital elements |
 | `/comets` | Notable periodic comets and their next perihelion dates, sorted by soonest |
@@ -43,11 +41,11 @@ Commands are grouped the same way `/help` groups them in Discord — a handful o
 | `/maxexposure [focal_length] [aperture] [scope] [camera] [pixel_pitch] [object_name] [declination]` | Max exposure before star trailing on an untracked/tripod shot, via the real Full NPF Rule formula — can pull optics from a saved scope, a camera's pixel pitch from a saved profile, and auto-fill declination from a named deep-sky object |
 | `/subexposure <bortle> [guiding]` | Recommended sub-exposure range for tracked astrophotography, from common practice — a rough starting point, not a calculation |
 | `/subexposureprecise <sky_background_rate> [camera] [read_noise] [noise_tolerance]` | Precise sub-exposure calculation using Robin Glover's (SharpCap) confirmed formula |
-| `/savecamera <name> [sensor_preset] [pixel_pitch] [read_noise]` | Save a named camera profile (pixel pitch, and optionally read noise for `/subexposure`'s precise mode) for reuse — supports more than one camera per person |
+| `/savecamera <save_as> [camera_model] [sensor_preset] [pixel_pitch] [read_noise]` | Save a named camera profile (pixel pitch, resolution, and optionally read noise) for reuse — supports more than one camera per person |
 | `/editcamera` | Guided update: pick a saved camera from a dropdown, then edit its name, pixel pitch, and read noise in a pre-filled form |
 | `/mycameras` | List your saved camera profiles |
 | `/deletecamera <name>` | Delete one of your saved camera profiles |
-| `/savescope <name> [focal_length] [aperture] [aperture_diameter_mm]` | Save a named telescope profile (focal length + aperture) for reuse in `/maxexposure` — supports more than one scope per person |
+| `/savescope <save_as> [telescope_model] [focal_length] [aperture] [aperture_diameter_mm]` | Save a named telescope profile (focal length + aperture) for reuse in `/maxexposure` — supports more than one scope per person |
 | `/editscope` | Guided update: pick a saved scope from a dropdown, then edit its name, focal length, and aperture in a pre-filled form |
 | `/myscopes` | List your saved telescope profiles |
 | `/deletescope <name>` | Delete one of your saved telescope profiles |
@@ -56,9 +54,9 @@ Commands are grouped the same way `/help` groups them in Discord — a handful o
 
 | Command | Description |
 |---|---|
-| `/issnow` | Current latitude/longitude of the ISS |
-| `/isspasses [location] [remember]` | Next 5 visible ISS passes, with times and duration |
-| `/satellite [name] [location] [norad_id] [remember]` | Track any named satellite (not just ISS) — position + upcoming passes, with N2YO freshness fallback |
+| `/issnow` | Current ISS position (lat/lon/altitude) plus a ground-track map of its path over the last/next ~45 minutes |
+| `/isspasses [location] [remember]` | Next 5 visible ISS passes, with times and duration — includes a button to jump to `/issnow`'s live position + map |
+| `/satellite [name] [location] [norad_id] [remember]` | Track any named satellite (not just ISS) — position + upcoming passes, with N2YO freshness fallback. `name` autocompletes Celestrak's ~100 brightest |
 
 **🚀 Launches**
 
