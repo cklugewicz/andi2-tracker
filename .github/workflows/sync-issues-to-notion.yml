@@ -1,0 +1,36 @@
+name: Sync issues to Notion
+
+on:
+  issues:
+    types:
+      [opened, edited, closed, reopened, deleted, transferred, assigned, unassigned, labeled, unlabeled]
+  workflow_dispatch: # manual run = full backfill
+  schedule:
+    - cron: "17 6 * * *" # nightly catch-up (06:17 UTC)
+
+# Run one sync at a time so rapid-fire issue events can't race each other.
+concurrency:
+  group: notion-issue-sync
+  cancel-in-progress: false
+
+permissions:
+  issues: read
+  contents: read
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Sync to Notion
+        run: node .github/scripts/sync-issues-to-notion.mjs
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
+          NOTION_DATABASE_ID: ${{ secrets.NOTION_DATABASE_ID }}
